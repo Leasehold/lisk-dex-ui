@@ -21,6 +21,9 @@ const { Mnemonic } = passphrase;
 class App extends React.Component {
   constructor(props) {
     super(props);
+
+    processConfiguration(defaultConfiguration);
+
     // This state has too many members. This is because we want to share data from API calls with various different components without
     // having to re-fetch the data in each.
     this.state = {
@@ -43,15 +46,14 @@ class App extends React.Component {
           address: ''
         },
         */
-      }
+      },
+      markets: Object.keys(defaultConfiguration.markets),
+      marketConfig: defaultConfiguration.markets['LSH/LSK']
     };
 
 
     this.showSignIn = this.showSignIn.bind(this);
     this.passphraseSubmit = this.passphraseSubmit.bind(this);
-
-
-    processConfiguration(defaultConfiguration);
 }
 
 refreshOrderbook = () => {
@@ -170,10 +172,10 @@ render() {
       </div>
       <div className="container">
         <div className="buy-panel">
-          <PlaceOrder side="buy"></PlaceOrder>
+          <PlaceOrder side="buy" marketConfig={this.state.marketConfig}></PlaceOrder>
         </div>
         <div className="sell-panel">
-          <PlaceOrder side="sell"></PlaceOrder>
+          <PlaceOrder side="sell" marketConfig={this.state.marketConfig}></PlaceOrder>
         </div>
         <div className="orderbook-container">
           <div className="sell-orders">
@@ -190,10 +192,10 @@ render() {
           <Chart whole={Math.pow(10, 8)} currentMarket={this.state.currentMarket}></Chart>
         </div>
         <div className="your-orders">
-          <YourOrders orders={this.state.myOrders}></YourOrders>
+          <YourOrders orders={this.state.myOrders} marketConfig={this.state.marketConfig}></YourOrders>
         </div>
         <div className="market-name-and-stats">
-          <MarketList></MarketList>
+          <MarketList markets={this.state.markets}></MarketList>
         </div>
       </div>
     </userContext.Provider>

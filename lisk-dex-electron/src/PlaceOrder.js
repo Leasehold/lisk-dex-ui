@@ -2,14 +2,8 @@ import React from "react";
 import "./PlaceOrder.css";
 import BalanceDisplay from './BalanceDisplay';
 import { userContext } from './context';
-import { blockchainAPIURLS } from './BalanceDisplay';
 import * as transactions from '@liskhq/lisk-transactions';
 import axios from 'axios';
-
-export const dex_addresses = {
-  'lsk': '11279270540263472697L',
-  'clsk': '6054385933994690091L',
-}
 
 export default class PlaceOrder extends React.Component {
   static contextType = userContext;
@@ -52,18 +46,17 @@ export default class PlaceOrder extends React.Component {
       let destChain = undefined;
       let broadcastURL = undefined;
       if (this.props.side === 'buy') {
-        dexAddress = dex_addresses[this.context.currentMarket[1]]
+        dexAddress = this.props.marketConfig.DEX_ADDRESSES[this.context.currentMarket[1]]
         destAddress = this.context.keys[this.context.currentMarket[0]].address;
         passphrase = this.context.keys[this.context.currentMarket[1]].passphrase;
         destChain = this.context.currentMarket[0];
-        broadcastURL = blockchainAPIURLS[this.context.currentMarket[1]];
+        broadcastURL = this.props.marketConfig.LISK_API_URLS[this.context.currentMarket[1]];
       } else if (this.props.side === 'sell') {
-        dexAddress = dex_addresses[this.context.currentMarket[0]]
+        dexAddress = this.props.marketConfig.DEX_ADDRESSES[this.context.currentMarket[0]]
         destAddress = this.context.keys[this.context.currentMarket[1]].address;
         passphrase = this.context.keys[this.context.currentMarket[0]].passphrase;
         destChain = this.context.currentMarket[1];
-        broadcastURL = blockchainAPIURLS[this.context.currentMarket[0]];
-
+        broadcastURL = this.props.marketConfig.LISK_API_URLS[this.context.currentMarket[0]];
       }
 
       if (dexAddress && destAddress && passphrase && destChain && broadcastURL) {
@@ -91,18 +84,17 @@ export default class PlaceOrder extends React.Component {
       let destChain = undefined;
       let broadcastURL = undefined;
       if (this.props.side === 'buy') {
-        dexAddress = dex_addresses[this.context.currentMarket[1]]
+        dexAddress = this.props.marketConfig.DEX_ADDRESSES[this.context.currentMarket[1]]
         destAddress = this.context.keys[this.context.currentMarket[0]].address;
         passphrase = this.context.keys[this.context.currentMarket[1]].passphrase;
         destChain = this.context.currentMarket[0];
-        broadcastURL = blockchainAPIURLS[this.context.currentMarket[1]];
+        broadcastURL = this.props.marketConfig.LISK_API_URLS[this.context.currentMarket[1]];
       } else if (this.props.side === 'sell') {
-        dexAddress = dex_addresses[this.context.currentMarket[0]]
+        dexAddress = this.props.marketConfig.DEX_ADDRESSES[this.context.currentMarket[0]]
         destAddress = this.context.keys[this.context.currentMarket[1]].address;
         passphrase = this.context.keys[this.context.currentMarket[0]].passphrase;
         destChain = this.context.currentMarket[1];
-        broadcastURL = blockchainAPIURLS[this.context.currentMarket[0]];
-
+        broadcastURL = this.props.marketConfig.LISK_API_URLS[this.context.currentMarket[0]];
       }
 
       if (dexAddress && destAddress && passphrase && destChain && broadcastURL) {
@@ -136,10 +128,10 @@ export default class PlaceOrder extends React.Component {
         <button className="market-limit-buttons" disabled={this.state.marketMode} onClick={this.switchMode}>Market</button>
         <button className="market-limit-buttons" disabled={!this.state.marketMode} onClick={this.switchMode}>Limit</button>
         {(this.props.side === 'buy') &&
-          <BalanceDisplay whole={Math.pow(10, 8)} asset={this.context.currentMarket[1]}></BalanceDisplay>
+          <BalanceDisplay whole={Math.pow(10, 8)} marketConfig={this.props.marketConfig} asset={this.context.currentMarket[1]}></BalanceDisplay>
         }
         {(this.props.side === 'sell') &&
-          <BalanceDisplay whole={Math.pow(10, 8)} asset={this.context.currentMarket[0]}></BalanceDisplay>
+          <BalanceDisplay whole={Math.pow(10, 8)} marketConfig={this.props.marketConfig} asset={this.context.currentMarket[0]}></BalanceDisplay>
         }
         {canTrade &&
           <form onSubmit={this.handleSubmit}>

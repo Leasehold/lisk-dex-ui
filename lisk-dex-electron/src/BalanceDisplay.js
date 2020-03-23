@@ -3,11 +3,6 @@ import axios from 'axios';
 import { userContext } from './context';
 import "./App.css";
 
-export const blockchainAPIURLS = {
-  'lsk': ['https://test-02.liskapi.io/api'],
-  'clsk': ['http://54.174.172.179:7010']
-}
-
 export default class BalanceDisplay extends React.Component {
   static contextType = userContext;
   interval = undefined;
@@ -25,7 +20,7 @@ export default class BalanceDisplay extends React.Component {
       console.log('Updating balance');
       const c = axios.create();
       c.defaults.timeout = 10000;
-      c.get(`${blockchainAPIURLS[this.props.asset][0]}/accounts?address=${this.context.keys[this.props.asset].address}`)
+      c.get(`${this.props.marketConfig.LISK_API_URLS[this.props.asset]}/accounts?address=${this.context.keys[this.props.asset].address}`)
         .then((data) => {
           // "data" :))
           if (data.data.data.length > 0) {

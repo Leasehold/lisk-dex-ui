@@ -1,8 +1,6 @@
 import React from "react";
 import './UserOrder.css';
-import { dex_addresses } from './PlaceOrder';
 import { userContext } from './context';
-import { blockchainAPIURLS } from './BalanceDisplay';
 import * as transactions from '@liskhq/lisk-transactions';
 import axios from 'axios';
 
@@ -19,11 +17,11 @@ export default class UserOrder extends React.Component {
   cancelOrder = () => {
     console.log(this.props.order);
 
-    let dexAddress = dex_addresses[this.props.order.sourceChain];
+    let dexAddress = this.props.marketConfig.DEX_ADDRESSES[this.props.order.sourceChain];
     let passphrase = this.context.keys[this.props.order.sourceChain].passphrase;
     let targetChain = this.props.order.targetChain;
     let orderId = this.props.order.id;
-    let broadcastURL = blockchainAPIURLS[this.props.order.sourceChain];
+    let broadcastURL = this.props.marketConfig.LISK_API_URLS[this.props.order.sourceChain];
 
 
     const tx = transactions.transfer({
