@@ -1,7 +1,7 @@
 #sign-in-modal {
     position: fixed;
     box-sizing: border-box;
-    z-index: 2;
+    z-index: 100;
     top: calc(50% - 321px);
     left: 25%;
     width: 50%;
