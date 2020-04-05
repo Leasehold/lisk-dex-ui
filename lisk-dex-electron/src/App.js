@@ -470,7 +470,7 @@ class App extends React.Component {
             </div>
           </div>
           <div className="depth-chart">
-            <PriceHistoryChart key="price-history-chart" type="svg" data={[]}></PriceHistoryChart>
+            <PriceHistoryChart key="price-history-chart" type="hybrid" data={[]}></PriceHistoryChart>
           </div>
           <div className="your-orders">
             <YourOrders orders={this.state.yourOrders} orderCanceled={this.orderCancel}></YourOrders>
