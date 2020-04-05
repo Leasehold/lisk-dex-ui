@@ -3,6 +3,7 @@ import './App.css';
 
 import Orderbook from './Orderbook';
 import Chart from './Chart';
+import PriceHistoryChart from './PriceHistoryChart';
 import PlaceOrder from './PlaceOrder';
 import YourOrders from './YourOrders';
 import SignInModal from './SignInModal';
@@ -469,7 +470,7 @@ class App extends React.Component {
             </div>
           </div>
           <div className="depth-chart">
-            <Chart whole={Math.pow(10, 8)} activeAssets={this.state.activeAssets} orderBookData={this.state.orderBookData}></Chart>
+            <PriceHistoryChart key="price-history-chart" type="svg" data={[]}></PriceHistoryChart>
           </div>
           <div className="your-orders">
             <YourOrders orders={this.state.yourOrders} orderCanceled={this.orderCancel}></YourOrders>
