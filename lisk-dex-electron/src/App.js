@@ -2,7 +2,6 @@ import React from 'react';
 import './App.css';
 
 import Orderbook from './Orderbook';
-import Chart from './Chart';
 import PriceHistoryChart from './PriceHistoryChart';
 import PlaceOrder from './PlaceOrder';
 import YourOrders from './YourOrders';
@@ -22,12 +21,14 @@ import { userContext } from './context';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as passphrase from '@liskhq/lisk-passphrase';
 import LeaveWarning from './LeaveWarning';
+import axios from 'axios';
 import { processConfiguration, defaultConfiguration } from './config/Configuration';
 
 // get what we're actually using from the passphrase library.
 const { Mnemonic } = passphrase;
 
 const NOTIFICATIONS_MAX_QUEUE_LENGTH = 3;
+const DEFAULT_API_MAX_PAGE_SIZE = 100;
 
 class App extends React.Component {
   constructor(props) {
@@ -42,6 +43,7 @@ class App extends React.Component {
       // new, activeMarket string for selecting the active market out of the configuration object.
       activeMarket: '',
       enabledAssets: [],
+      priceHistory: [],
       displaySigninModal: false,
       signedIn: false,
       signInFailure: false,
@@ -83,6 +85,88 @@ class App extends React.Component {
       activeAssets: configuration.markets[defaultMarketKey].assets,
       enabledAssets: Object.keys(configuration.assets),
       configurationLoaded: true
+    });
+  }
+
+  refreshPriceHistory = async () => {
+    try {
+      await this._refreshPriceHistory();
+    } catch (error) {
+      console.error(error);
+      this.notify('Failed to refresh the market price history - Check your connection.', true);
+    }
+  }
+
+  getCounterpartyOrderIdFromTransaction(transaction) {
+    // TODO: Match order id based on position in protocol argument list instead of regex.
+    const counterpartyOrderIdRegex = /,[0-9]+:/g;
+
+    let transactionData = transaction.asset.data || '';
+    let matches = transactionData.match(counterpartyOrderIdRegex);
+    if (matches) {
+      let match = matches[0];
+      return match.slice(1, match.length - 1);
+    }
+    return null;
+  }
+
+  _refreshPriceHistory = async () => {
+    let [quoteChainTxns, baseChainTxns] = await Promise.all(
+      this.state.activeAssets.map(async (assetSymbol) => {
+        let asset = this.state.configuration.assets[assetSymbol];
+        let client = axios.create();
+        let targetEndpoint = asset.apiUrl;
+        let dexOptions =  this.state.configuration.markets[this.state.activeMarket].dexOptions;
+        let dexWalletAddress = dexOptions.chains[assetSymbol].walletAddress
+        let result = await client.get(
+          `${targetEndpoint}/transactions?senderId=${
+            dexWalletAddress
+          }&limit=${
+            asset.apiMaxPageSize || DEFAULT_API_MAX_PAGE_SIZE
+          }&sort=timestamp:desc`
+        );
+        return result.data.data;
+      })
+    );
+
+    let quoteChainTxnMap = new Map();
+
+    for (let txn of quoteChainTxns) {
+      let counterPartyOrderId = this.getCounterpartyOrderIdFromTransaction(txn);
+      quoteChainTxnMap.set(counterPartyOrderId, txn);
+    }
+    let txnPairs = [];
+    for (let txn of baseChainTxns) {
+      let counterPartyOrderId = this.getCounterpartyOrderIdFromTransaction(txn);
+      let counterPartyTxn = quoteChainTxnMap.get(counterPartyOrderId);
+      if (counterPartyTxn) {
+        txnPairs.push({
+          base: txn,
+          quote: counterPartyTxn
+        });
+      }
+    }
+    let priceHistory = [];
+    for (let txnPair of txnPairs) {
+      let dexOptions =  this.state.configuration.markets[this.state.activeMarket].dexOptions;
+      let priceDecimalPrecision = dexOptions.priceDecimalPrecision;
+      let fullBaseAmount = Number(txnPair.base.amount) + Number(txnPair.base.fee);
+      let fullQuoteAmount = Number(txnPair.quote.amount) + Number(txnPair.quote.fee);
+      let price = fullBaseAmount / fullQuoteAmount;
+      if (priceDecimalPrecision != null) {
+        price = Number(price.toFixed(priceDecimalPrecision));
+      }
+      priceHistory.push({
+        timestamp: txnPair.base.timestamp,
+        price,
+        volume: fullBaseAmount / 100000000
+      });
+    }
+
+    priceHistory.reverse();
+
+    this.setState({
+      priceHistory
     });
   }
 
@@ -316,11 +400,11 @@ class App extends React.Component {
 
     // TODO: Match order id based on position in protocol argument list instead of regex.
     const originOrderIdRegexT1 = /,[0-9]+:/g;
-    const originOrderIdRegexT2 = /,[0-9]+,/g;
+    const originOrderIdRegexOthers = /,[0-9]+,/g;
 
     const getOriginOrderId = (pendingTransfer) => {
       let transactionData = pendingTransfer.transaction.asset.data || '';
-      let regex = transactionData.slice(0, 2) === 't1' ? originOrderIdRegexT1 : originOrderIdRegexT2;
+      let regex = transactionData.slice(0, 2) === 't1' ? originOrderIdRegexT1 : originOrderIdRegexOthers;
       let matches = transactionData.match(regex);
       if (matches) {
         let match = matches[0];
@@ -382,8 +466,10 @@ class App extends React.Component {
   componentDidUpdate() {
     if (this.state.configurationLoaded && !this.intervalRegistered) {
       this.refreshOrderbook();
+      this.refreshPriceHistory();
       setInterval(async () => {
         this.refreshOrderbook();
+        // this.refreshPriceHistory(); // TODO 2222
       }, this.state.configuration.refreshInterval);
       this.intervalRegistered = true;
     }
@@ -471,7 +557,7 @@ class App extends React.Component {
             </div>
           </div>
           <div className="depth-chart">
-            <PriceHistoryChart key="price-history-chart" type="hybrid" data={[]}></PriceHistoryChart>
+            <PriceHistoryChart key="price-history-chart" type="hybrid" market={this.state.activeMarket} data={this.state.priceHistory}></PriceHistoryChart>
           </div>
           <div className="your-orders">
             <YourOrders orders={this.state.yourOrders} orderCanceled={this.orderCancel}></YourOrders>
