@@ -314,6 +314,7 @@ class App extends React.Component {
       return transactionData.charAt(0);
     };
 
+    // TODO: Match order id based on position in protocol argument list instead of regex.
     const originOrderIdRegexT1 = /,[0-9]+:/g;
     const originOrderIdRegexT2 = /,[0-9]+,/g;
 
