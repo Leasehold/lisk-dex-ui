@@ -168,7 +168,7 @@
   }
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 950px) {
   .container {
     height: 1400px;
     grid-template-columns: 50% 50%;
