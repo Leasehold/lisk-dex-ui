@@ -1,7 +1,7 @@
 import React from 'react';
 import './PriceHistoryChart.css';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 
 const PriceTooltip = ({ active, payload, label }) => {
@@ -21,9 +21,6 @@ class PriceHistoryChart extends React.PureComponent {
 	render() {
 		let width;
 		let height;
-		let topMargin = 20;
-		let rightMargin = 40;
-		let bottomMargin = 20;
 		if (this.props.windowWidth > 1599) {
 			width = 700;
 			height = 400;
@@ -33,49 +30,41 @@ class PriceHistoryChart extends React.PureComponent {
 		} else if (this.props.windowWidth > 1049) {
 			width = 380;
 			height = 340;
-			topMargin = 120;
 		} else if (this.props.windowWidth > 949) {
 			width = 340;
 			height = 280;
-			topMargin = 120;
 		} else if (this.props.windowWidth > 729) {
 			width = 700;
 			height = 250;
-			topMargin = 60;
-			rightMargin = 50;
 		} else if (this.props.windowWidth > 469) {
 			width = 400;
 			height = 250;
-			topMargin = 60;
-			rightMargin = 50;
 		} else if (this.props.windowWidth > 399) {
 			width = 350;
 			height = 250;
-			topMargin = 60;
-			rightMargin = 50;
 		} else {
 			width = 300;
 			height = 200;
-			topMargin = 100;
-			rightMargin = 50;
-			bottomMargin = 0;
 		}
 		return (
-      <LineChart
-        width={width}
-        height={height}
-        data={this.props.data}
-        margin={{
-          top: topMargin, right: rightMargin, left: 0, bottom: bottomMargin,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#222222" />
-        <XAxis dataKey="timestamp" />
-        <YAxis />
-        <Tooltip content={<PriceTooltip />} />
-        <Legend />
-        <Line type="monotone" dataKey="price" stroke="#00AA00" activeDot={{ r: 8 }} dot={null} />
-      </LineChart>
+			<div style={{position: 'relative'}}>
+	      <LineChart
+	        width={width}
+	        height={height}
+	        data={this.props.data}
+					style={{position: 'relative', zIndex: 110}}
+	      >
+	        <CartesianGrid strokeDasharray="3 3" stroke="#222222" />
+	        <XAxis dataKey="timestamp" />
+	        <YAxis />
+	        <Tooltip content={<PriceTooltip />} />
+	        <Line type="monotone" dataKey="price" stroke="#009900" strokeWidth={2} activeDot={{ r: 4 }} dot={null} />
+	      </LineChart>
+
+				<BarChart width={width - 53} height={height/5} data={this.props.data} style={{position: 'absolute', bottom: '39px', left: '57px', zIndex: 100}}>
+	        <Bar dataKey="volume" fill="#999999" />
+	      </BarChart>
+			</div>
     );
 	}
 }
