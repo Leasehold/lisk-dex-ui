@@ -647,7 +647,11 @@ class App extends React.Component {
           {this.state.displayLeaveWarning && <LeaveWarning setDisplayLeaveWarning={this.setDisplayLeaveWarning} />}
           <div className="top-bar">
             <div>
-              <b style={{ fontSize: '21px' }}>{this.state.configuration.appTitle}</b>
+              <b style={{ fontSize: '21px' }}>
+                <a href="/" style={{color: "inherit", textDecoration: "inherit"}}>
+                  {this.state.configuration.appTitle}
+                </a>
+              </b>
               {' '}
 &nbsp;
               <a className="feedback-link" style={{ color: '#34cfeb', fontSize: '14px' }} href={this.state.configuration.feedbackLink.url} rel="noopener noreferrer" target="_blank">{this.state.configuration.feedbackLink.text}</a>
